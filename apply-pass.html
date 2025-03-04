@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apply Bus Pass</title>
+    <link rel="stylesheet" href="styles.css">
+
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(to right, #007bff, #00d4ff);
+            margin: 0;
+            padding: 0;
+            color: white;
+            text-align: center;
+        }
+
+         /* Blurred Background Image */
+         body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('img/bus2.png') no-repeat center center/cover;
+            filter: blur(8px);
+            z-index: -1;
+        }
+
+        .navbar {
+            background: rgba(0, 0, 0, 0.85);
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .navbar a {
+            color: white;
+            text-decoration: none;
+            font-size: 18px;
+            font-weight: bold;
+            padding: 10px 20px;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .navbar a:hover {
+            background: #007bff;
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .container {
+            margin-top: 50px;
+        }
+
+        form {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 30px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.3);
+            display: inline-block;
+        }
+
+        input, button {
+            width: 100%;
+            max-width: 300px;
+            padding: 15px;
+            margin: 10px 5px 10px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        #logoutBtn {
+            background: #ff4d4d;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #logoutBtn:hover {
+            background: #e60000;
+            transform: scale(1.1);
+        }
+
+        button {
+            background: #ff5722;
+            color: white;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #e64a19;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <a href="home.html">Home</a>
+        <a href="apply-pass.html">Apply Pass</a>
+        <a href="view-pass.html">View Pass</a>
+        <a href="index.html" id="logoutBtn">Logout</a>
+    </div>
+
+    <div class="container">
+        <h1>Apply for a Bus Pass</h1>
+        <form id="passForm">
+            <input type="text" id="name" placeholder="Enter your name" required>
+            <input type="email" id="email" placeholder="Enter your email" required>
+            <input type="text" id="college" placeholder="Enter your college" required>
+            <input type="text" id="universityRegNo" placeholder="University Register No (U22CS0000)" required>
+            <input type="text" id="routeNumber" placeholder="Enter route number" required>
+            <input type="text" id="routeName" placeholder="Enter route name" required>
+            <input type="text" id="receiptNo" placeholder="Fees Paid Receipt No (ON-0000000)" required>
+            <button type="submit">Apply</button>
+        </form>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+        import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+    
+        const firebaseConfig = {
+            apiKey: "AIzaSyB6_JY6kADvIyJgYz_9ybNBUnZUEb6Db10",
+            authDomain: "bus-pass-729ac.firebaseapp.com",
+            databaseURL: "https://bus-pass-729ac-default-rtdb.firebaseio.com",
+            projectId: "bus-pass-729ac",
+            storageBucket: "bus-pass-729ac.appspot.com",
+            messagingSenderId: "743805710315",
+            appId: "1:743805710315:web:8ed8e631ff389dc78773ae"
+        };
+    
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+    
+        function validateReceiptNo(receiptNo) {
+            return /^ON-\d{7}$/.test(receiptNo);
+        }
+
+        function validateUniversityRegNo(universityRegNo) {
+            return /^U22CS\d{4}$/.test(universityRegNo);
+        }
+    
+        document.getElementById("passForm").addEventListener("submit", function(event) {
+            event.preventDefault();
+    
+            const name = document.getElementById("name").value.trim();
+            const email = document.getElementById("email").value.trim();
+            const college = document.getElementById("college").value.trim();
+            const universityRegNo = document.getElementById("universityRegNo").value.trim();
+            const routeNumber = document.getElementById("routeNumber").value.trim();
+            const routeName = document.getElementById("routeName").value.trim();
+            const receiptNo = document.getElementById("receiptNo").value.trim();
+    
+            if (!name || !email || !college || !universityRegNo || !routeNumber || !routeName || !receiptNo) {
+                alert("Please fill in all fields.");
+                return;
+            }
+
+            if (!validateReceiptNo(receiptNo)) {
+                alert("Invalid Receipt No. Format should be ON-0000000.");
+                return;
+            }
+
+            if (!validateUniversityRegNo(universityRegNo)) {
+                alert("Invalid University Register No. Format should be U22CS0000.");
+                return;
+            }
+    
+            push(ref(db, "bus_passes"), {
+                name, email, college, universityRegNo, routeNumber, routeName, receiptNo
+            }).then(() => {
+                alert("Bus pass applied successfully!");
+                document.getElementById("passForm").reset();
+            }).catch(error => {
+                alert("Error applying pass: " + error.message);
+            });
+        });
+        
+         // Logout Function
+         document.getElementById("logoutBtn").addEventListener("click", function() {
+            sessionStorage.removeItem("userLoggedIn");
+            alert("You have been logged out.");
+            window.location.href = "login.html";
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Bus Pass</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(to right, #007bff, #00d4ff);
+            margin: 0;
+            padding: 0;
+            color: white;
+            text-align: center;
+        }
+
+        .navbar {
+            background: rgba(0, 0, 0, 0.85);
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .navbar a {
+            color: white;
+            text-decoration: none;
+            font-size: 18px;
+            font-weight: bold;
+            padding: 10px 20px;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .navbar a:hover {
+            background: #007bff;
+            color: white;
+            transform: scale(1.1);
+        }
+
+        #logoutBtn {
+            background: #ff4d4d;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #logoutBtn:hover {
+            background: #e60000;
+            transform: scale(1.1);
+        }
+
+        /* Responsive Design */
+        @media screen and (max-width: 768px) {
+            .navbar {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+
+        .container {
+            margin-top: 50px;
+        }
+
+        table {
+            width: 90%;
+            margin: 20px auto;
+            border-collapse: collapse;
+            background: white;
+            color: black;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        th, td {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background: #007bff;
+            color: white;
+        }
+
+        tr:hover {
+            background: #f1f1f1;
+        }
+
+        .no-data {
+            font-size: 18px;
+            color: white;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <a href="home.html">Home</a>
+        <a href="apply-pass.html" onclick="gotologin">Apply Pass</a>
+        <a href="view-pass.html" onclick="gotologin">View Pass</a>
+        <a href="index.html" id="logoutBtn">Logout</a>
+    </div>
+
+    <div class="container">
+        <h1>View Bus Pass Applications</h1>
+        <div id="passList">
+            <p class="no-data">Loading bus pass data...</p>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+        import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+    
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyB6_JY6kADvIyJgYz_9ybNBUnZUEb6Db10",
+            authDomain: "bus-pass-729ac.firebaseapp.com",
+            databaseURL: "https://bus-pass-729ac-default-rtdb.firebaseio.com",
+            projectId: "bus-pass-729ac",
+            storageBucket: "bus-pass-729ac.appspot.com",
+            messagingSenderId: "743805710315",
+            appId: "1:743805710315:web:8ed8e631ff389dc78773ae"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        async function fetchBusPasses() {
+            const passList = document.getElementById("passList");
+            passList.innerHTML = '<p class="no-data">Loading bus pass data...</p>';
+    
+            try {
+                const snapshot = await get(ref(db, "bus_passes"));
+                if (snapshot.exists()) {
+                    let tableHTML = `
+                        <table>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>College</th>
+                                <th>University Register No</th>
+                                <th>Route Number</th>
+                                <th>Route Name</th>
+                                <th>Receipt No</th>
+                            </tr>`;
+    
+                    snapshot.forEach(childSnapshot => {
+                        const pass = childSnapshot.val();
+                        tableHTML += `
+                            <tr>
+                                <td>${pass.name}</td>
+                                <td>${pass.email}</td>
+                                <td>${pass.college}</td>
+                                <td>${pass.universityRegNo || "N/A"}</td>
+                                <td>${pass.routeNumber}</td>
+                                <td>${pass.routeName}</td>
+                                <td>${pass.receiptNo || "N/A"}</td>
+                            </tr>`;
+                    });
+    
+                    tableHTML += `</table>`;
+                    passList.innerHTML = tableHTML;
+                } else {
+                    passList.innerHTML = '<p class="no-data">No bus pass applications found.</p>';
+                }
+            } catch (error) {
+                console.error("Error fetching data:", error);
+                passList.innerHTML = '<p class="no-data">Failed to load bus pass data.</p>';
+            }
+        }
+    
+        // Fetch data on page load
+        fetchBusPasses();
+
+        // Logout Function
+        document.getElementById("logoutBtn").addEventListener("click", function() {
+            sessionStorage.removeItem("userLoggedIn");
+            alert("You have been logged out.");
+            window.location.href = "login.html";
+        });
+    </script>
+</body>
+</html>
