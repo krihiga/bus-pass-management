@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Pass</title>
+    <title>Student Bus Pass</title>
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
     
     <style>
@@ -18,11 +18,10 @@
 
         .navbar {
             background: rgba(0, 0, 0, 0.85);
-            padding: 15px;
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: 20px;
+            gap: 50px;
             box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
         }
 
@@ -38,15 +37,25 @@
 
         .navbar a:hover {
             background: #007bff;
-            color: white;
             transform: scale(1.1);
         }
 
         .container {
-            margin-top: 50px;
+            margin-top: 30px;
         }
 
-        #qrcode {
+        .id-card {
+            background: white;
+            width: 300px;
+            padding: 20px;
+            margin: auto;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            color: black;
+        }
+        
+            #qrcode {
             margin: 20px auto;
             width: 200px;
             height: 200px;
@@ -59,16 +68,14 @@
             background: #ff4d4d;
             padding: 10px 15px;
             border-radius: 5px;
-            position: relative;
-            margin-left: 80%;
-            display: flex;
-            justify-content: flex-start;
+            position: absolute;
+            right: 20px;
+            top: 10px;
             cursor: pointer;
         }
 
         #logoutBtn:hover {
             background: #e60000;
-            transform: scale(1.1);
         }
     </style>
 </head>
@@ -79,16 +86,23 @@
 
     <div class="container">
         <h2>Student Bus Pass</h2>
+        <div class="id-card">
+            <p><strong>Name:</strong> <span id="student-name"></span></p>
+            <p><strong>College Name:</strong> <span id="college-name"></span></p>
+            <p><strong>University Reg No:</strong> <span id="university-reg"></span></p>
+            <p><strong>Receipt No:</strong> <span id="receipt-no"></span></p>
+            <p><strong>Bus Route:</strong> <span id="bus-route"></span></p>
+            <p><strong>Boarding Point:</strong> <span id="boarding-point"></span></p>
+        </div>
         <div id="qrcode"></div>
-        <p id="student-info"></p>
     </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
         import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
-        // Firebase Configuration
         const firebaseConfig = {
-            apiKey: "AIzaSyB6_JY6kADvIyJgYz_9ybNBUnZUEb6Db10",
+            apiKey: "AIzaSyB6_JY6k...",
             authDomain: "bus-pass-729ac.firebaseapp.com",
             databaseURL: "https://bus-pass-729ac-default-rtdb.firebaseio.com",
             projectId: "bus-pass-729ac",
@@ -101,55 +115,45 @@
         const database = getDatabase(app);
 
         document.addEventListener("DOMContentLoaded", async function () {
-    const username = sessionStorage.getItem("username"); // Ensure username is retrieved
-    if (!username) {
-        alert("Unauthorized access! Please log in.");
-        window.location.href = "stulogin.html";
-        return;
-    }
+            const username = sessionStorage.getItem("username");
+            if (!username) {
+                alert("Unauthorized access! Please log in.");
+                window.location.href = "stulogin.html";
+                return;
+            }
 
-    try {
-        const snapshot = await get(ref(database, "bus_passes")); // Get all bus passes
-        if (snapshot.exists()) {
-            let studentData = null;
+            try {
+                const snapshot = await get(ref(database, "bus_passes"));
+                if (snapshot.exists()) {
+                    const studentData = Object.values(snapshot.val()).find(data => data.universityRegNo === username);
 
-            snapshot.forEach(childSnapshot => {
-                const data = childSnapshot.val();
-                if (data.universityRegNo === username) {
-                    studentData = data;
+                    if (studentData) {
+                        document.getElementById("student-name").innerText = studentData.name;
+                        document.getElementById("college-name").innerText = studentData.college;                        ;
+                        document.getElementById("university-reg").innerText = studentData.universityRegNo;
+                        document.getElementById("receipt-no").innerText = studentData.receiptNo;
+                        document.getElementById("bus-route").innerText = studentData.routeNumber;
+                        document.getElementById("boarding-point").innerText = studentData.routeName;
+
+                        new QRCode(document.getElementById("qrcode"), {
+                            text: studentData.universityRegNo, // Only essential data for QR code
+                            width: 200,
+                            height: 200
+                        });
+                    } else {
+                        alert("No student data found!");
+                        window.location.href = "stulogin.html";
+                    }
+                } else {
+                    alert("Database is empty!");
+                    window.location.href = "stulogin.html";
                 }
-            });
-
-            if (studentData) {
-                /*document.getElementById("student-info").innerHTML = `
-                    <strong>Name:</strong> ${studentData.name} <br>
-                    <strong>College Name:</strong> ${studentData.college} <br>
-                    <strong>University Register No:</strong> ${studentData.universityRegNo} <br>
-                    <strong>Receipt No:</strong> ${studentData.receiptNo} <br>
-                    <strong>Bus Route:</strong> ${studentData.routeNumber} <br>
-                    <strong>Bus Route Name:</strong> ${studentData.routeName}
-                `;
-            */
-                new QRCode(document.getElementById("qrcode"), {
-                    text: JSON.stringify(studentData),
-                    width: 200,
-                    height: 200
-                });
-            } else {
-                alert("No student data found!");
+            } catch (error) {
+                console.error("Error fetching data:", error);
+                alert("Error retrieving data. Please try again.");
                 window.location.href = "stulogin.html";
             }
-        } else {
-            alert("Database is empty!");
-            window.location.href = "stulogin.html";
-        }
-    } catch (error) {
-        console.error("Error fetching data:", error);
-        alert("Error retrieving data. Please try again.");
-        window.location.href = "stulogin.html";
-    }
-});
-
+        });
 
         document.getElementById("logoutBtn").addEventListener("click", function() {
             sessionStorage.clear();
