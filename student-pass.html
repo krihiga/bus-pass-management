@@ -136,7 +136,7 @@
                         document.getElementById("boarding-point").innerText = studentData.routeName;
 
                         new QRCode(document.getElementById("qrcode"), {
-                            text: studentData.universityRegNo, // Only essential data for QR code
+                            text: JSON.stringify(studentData), // Only essential data for QR code
                             width: 200,
                             height: 200
                         });
