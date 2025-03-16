@@ -52,4 +52,4 @@ This project is licensed under the Busy Order License.
 
 Contact
 For any inquiries or support, please reach out via **Busy Order**(https://www.busy-order.com/).
-(https://github.com/krihiga/bus-pass-management/blob/3395513e177740aafd4d58607dc2522f232e4a18/image.png)
+![image alt](https://github.com/krihiga/bus-pass-management/blob/3395513e177740aafd4d58607dc2522f232e4a18/image.png)
