@@ -52,5 +52,3 @@ This project is licensed under the Busy Order License.
 
 Contact
 For any inquiries or support, please reach out via **Busy Order**(https://www.busy-order.com/).
-
-(image.png)
